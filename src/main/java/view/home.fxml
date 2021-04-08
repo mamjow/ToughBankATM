@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane fx:id="anchorPane" prefHeight="362.0" prefWidth="612.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.homeController">
+    <children>
+        <HBox prefHeight="362.0" prefWidth="600.0" spacing="25.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <children>
+                <Pane prefHeight="362.0" prefWidth="300.0" style="-fx-background-color: #8aaaff;" HBox.hgrow="ALWAYS">
+                    <children>
+                        <TextField fx:id="payerIban" layoutX="82.0" layoutY="180.0" prefHeight="35.0" prefWidth="203.0" />
+                        <TextField fx:id="payerCardCode" layoutX="82.0" layoutY="226.0" prefHeight="35.0" prefWidth="203.0" />
+                        <Label layoutX="19.0" layoutY="180.0" text="IBAN:">
+                            <font>
+                                <Font size="24.0" />
+                            </font></Label>
+                        <Label layoutX="19.0" layoutY="226.0" text="Code:">
+                            <font>
+                                <Font size="24.0" />
+                            </font></Label>
+                        <Button layoutX="19.0" layoutY="271.0" mnemonicParsing="false" onAction="#PayActionbtn" prefHeight="77.0" prefWidth="266.0" text="Pay">
+                            <font>
+                                <Font name="System Bold" size="36.0" />
+                            </font></Button>
+                        <Label fx:id="resultLabel" layoutX="120.0" layoutY="97.0" text="Result">
+                            <font>
+                                <Font size="24.0" />
+                            </font></Label>
+                        <Label fx:id="priceLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="10.0" layoutY="14.0" prefHeight="52.0" prefWidth="285.0" text="00.0" textAlignment="CENTER">
+                            <font>
+                                <Font size="48.0" />
+                            </font>
+                        </Label>
+                    </children>
+                </Pane>
+                <Pane prefHeight="362.0" prefWidth="300.0" style="-fx-background-color: #bdcfff;" HBox.hgrow="ALWAYS">
+                    <children>
+                        <Button fx:id="newTransactionBtn" layoutX="14.0" layoutY="208.0" mnemonicParsing="false" onAction="#newTransactionRequestBtn" prefHeight="50.0" prefWidth="266.0" text="New Request" />
+                        <Button fx:id="koppelbtn" layoutX="14.0" layoutY="14.0" mnemonicParsing="false" onAction="#linkATMAction" prefHeight="50.0" prefWidth="266.0" text="Kopplen" />
+                        <Button layoutX="12.0" layoutY="275.0" mnemonicParsing="false" onAction="#openDailyPage" prefHeight="50.0" prefWidth="266.0" text="Open daily Page" />
+                        <Label fx:id="ibanLabel" layoutX="51.0" layoutY="110.0" textFill="#028307">
+                            <font>
+                                <Font name="System Bold" size="12.0" />
+                            </font></Label>
+                        <Label fx:id="ownerLabel" layoutX="55.0" layoutY="83.0" textFill="#028307" />
+                        <Label layoutX="16.0" layoutY="110.0" text="IBAN: " />
+                        <Label layoutX="14.0" layoutY="83.0" text="Owner: " />
+                    </children>
+                </Pane>
+            </children>
+        </HBox>
+    </children>
+</AnchorPane>
