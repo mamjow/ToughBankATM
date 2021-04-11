@@ -30,7 +30,7 @@ public class Main extends Application {
             FXMLLoader loader = new FXMLLoader(fileUrl);
             Parent root = loader.load();
             Scene scene = new Scene(root);
-            primaryStage.setTitle("Hello World");
+            primaryStage.setTitle("ToughBank ATM");
             primaryStage.setScene(scene);
             primaryStage.show();
         }

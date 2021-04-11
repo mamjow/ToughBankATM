@@ -2,40 +2,44 @@ package controller;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import model.DailyPage;
+import javafx.stage.PopupWindow;
 import model.JwtResponse;
 import model.Transaction;
+import model.TransactionFX;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.controlsfx.control.Notifications;
+
 import org.controlsfx.control.PopOver;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
 
+
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.ResourceBundle;
 
 import static model.UnixEpochDateTypeAdapter.getUnixEpochDateTypeAdapter;
 
@@ -50,6 +54,8 @@ public class homeController implements Initializable {
     Label ownerLabel;
     @FXML
     Button koppelbtn;
+    @FXML
+    Button dailyPage;
 
     @FXML
     TextField payerCardCode;
@@ -111,21 +117,31 @@ public class homeController implements Initializable {
      * Action handler of daily page
      */
     public void openDailyPage() {
-        Map<String, String> transactionMap = new HashMap<>();
-        transactionMap.put("iban", jwt.getIban() );
-        String response = makePostRequest(transactionMap,"http://127.0.0.1:8080/Client/api/getDayTransactions");
+        if(checkTokenStats()){
+            Map<String, String> transactionMap = new HashMap<>();
+            transactionMap.put("iban", jwt.getIban());
+            String response = makePostRequest(transactionMap, "http://127.0.0.1:8080/Client/api/getDayTransactions");
 
-        final Gson gson = new GsonBuilder()
-                .registerTypeAdapter(Date.class, getUnixEpochDateTypeAdapter())
-                .create();
+            final Gson gson = new GsonBuilder()
+                    .registerTypeAdapter(Date.class, getUnixEpochDateTypeAdapter())
+                    .create();
 
-        Transaction[] list= gson.fromJson(response, Transaction[].class);
-
-        System.out.println(list);
-
+            Transaction[] list = gson.fromJson(response, Transaction[].class);
+            makeTable(list);
+        }else {
+            showNotificationError("Je moet eerst de pinautomaat koppelen.");
+        }
 
     }
 
+    public Notifications showNotificationError(String body){
+        Notifications notify = Notifications.create().title("Fout")
+                .text(body)
+                .hideAfter(javafx.util.Duration.seconds(2))
+                .position(Pos.CENTER);
+        notify.showError();
+        return notify;
+    }
 
     /**
      * Action handler of New Pay request
@@ -139,7 +155,7 @@ public class homeController implements Initializable {
      * Action handler of Koppelen btn
      */
     public void linkATMAction() {
-        if(!checkTokenStats()){
+        if (!checkTokenStats()) {
             PopOver p = pinKoppelenPopOver();
             p.show(koppelbtn);
         }
@@ -150,22 +166,28 @@ public class homeController implements Initializable {
      */
     public void PayActionbtn() {
         Map<String, String> transactionMap = new HashMap<>();
-        transactionMap.put("price",this.priceLabel.getText());
-        transactionMap.put("p-iban",this.payerIban.getText() );
-        transactionMap.put("r-iban", jwt.getIban() );
-        transactionMap.put("description", "ATM PAY" );
+        transactionMap.put("price", this.priceLabel.getText());
+        transactionMap.put("p-iban", this.payerIban.getText());
+        transactionMap.put("r-iban", jwt.getIban());
+        transactionMap.put("description", "ATM PAY");
         // TODO check pin ?
+        if(this.priceLabel.getText().equals("00.0") || this.payerIban.getText().equals("")){
+            showNotificationError("Impossible Transaction");
+            return;
+        }
         System.out.println(transactionMap.toString());
-        String response = makePostRequest(transactionMap,"http://127.0.0.1:8080/Client/api/make-transaction");
+        String response = makePostRequest(transactionMap, "http://127.0.0.1:8080/Client/api/make-transaction");
 
-        if(response != null){
+        if (response != null) {
             resultLabel.setText("Gelukt");
+            this.payerIban.setText("");
+            this.priceLabel.setText("0.00");
         }
         System.out.println("result :" + response);
     }
 
 
-    private PopOver transactionPricePopOver(){
+    private PopOver transactionPricePopOver() {
         GridPane gridPane = getConfiguredGridPane();
         Label priceLabel = new Label("Price :");
         gridPane.add(priceLabel, 0, 0);
@@ -184,13 +206,20 @@ public class homeController implements Initializable {
         popOver.setContentNode(gridPane);
 
         sendPrice.setOnAction(actionEvent -> {
-            BigDecimal price = new BigDecimal(priceTextField.getText());
-            price = price.setScale(2, RoundingMode.HALF_UP);
-            this.priceLabel.setText(price.toString());
-            this.payerIban.setText("");
-            this.payerCardCode.setText("");
-            resultLabel.setText("");
-            popOver.hide();
+            try {
+                BigDecimal price = new BigDecimal(priceTextField.getText());
+                price = price.setScale(2, RoundingMode.HALF_UP);
+                this.priceLabel.setText(price.toString());
+                this.payerIban.setText("");
+                this.payerCardCode.setText("");
+                resultLabel.setText("");
+                popOver.hide();
+
+            } catch(NumberFormatException numberFormatException ){
+                showNotificationError("AUB voer een bedrag.");
+            }
+
+
         });
 
         return popOver;
@@ -199,6 +228,7 @@ public class homeController implements Initializable {
 
     /**
      * Create PopOver for koppeling the Atm
+     *
      * @return
      */
     private PopOver pinKoppelenPopOver() {
@@ -312,7 +342,36 @@ public class homeController implements Initializable {
         }
     }
 
+    private void makeTable(Transaction[] list) {
+        PopOver p = getConfiguredPopover("Table");
+        p.setArrowLocation(PopOver.ArrowLocation.LEFT_CENTER);
+        p.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_RIGHT);
+        TableView<TransactionFX> tableView = new TableView<>();
+        tableView.setEditable(true);
+        TableColumn<TransactionFX, String> col_payer = new TableColumn<>("Payer");
+        TableColumn<TransactionFX, String> col_time = new TableColumn<>("Time");
+        TableColumn<TransactionFX, String> col_amount = new TableColumn<>("Amount");
+        TableColumn<TransactionFX, String> col_desc = new TableColumn<>("description");
 
+
+        ObservableList<TransactionFX> tableListUsers = FXCollections.observableArrayList();
+        for (Transaction t:list ) {
+            tableListUsers.add(new TransactionFX(t));
+        }
+
+        col_payer.setCellValueFactory(cellData -> cellData.getValue().payerProperty());
+        col_time.setCellValueFactory(cellData -> cellData.getValue().timestampProperty());
+        col_amount.setCellValueFactory(cellData -> cellData.getValue().amountProperty());
+        col_desc.setCellValueFactory(cellData -> cellData.getValue().descriptionProperty());
+
+        tableView.getColumns().addAll(col_payer,col_time,col_amount,col_desc);
+        tableView.setItems(tableListUsers);
+        tableView.setPrefWidth(600);
+
+        p.setContentNode(tableView);
+        p.show(dailyPage);
+
+    }
 
 
 }

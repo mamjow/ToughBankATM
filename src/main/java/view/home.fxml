@@ -39,7 +39,7 @@
                     <children>
                         <Button fx:id="newTransactionBtn" layoutX="14.0" layoutY="208.0" mnemonicParsing="false" onAction="#newTransactionRequestBtn" prefHeight="50.0" prefWidth="266.0" text="New Request" />
                         <Button fx:id="koppelbtn" layoutX="14.0" layoutY="14.0" mnemonicParsing="false" onAction="#linkATMAction" prefHeight="50.0" prefWidth="266.0" text="Kopplen" />
-                        <Button layoutX="12.0" layoutY="275.0" mnemonicParsing="false" onAction="#openDailyPage" prefHeight="50.0" prefWidth="266.0" text="Open daily Page" />
+                        <Button fx:id="dailyPage" layoutX="12.0" layoutY="275.0" mnemonicParsing="false" onAction="#openDailyPage" prefHeight="50.0" prefWidth="266.0" text="Open daily Page" />
                         <Label fx:id="ibanLabel" layoutX="51.0" layoutY="110.0" textFill="#028307">
                             <font>
                                 <Font name="System Bold" size="12.0" />
